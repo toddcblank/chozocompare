@@ -133,12 +133,12 @@ def check_for_door_state(video_frame, previous_frame, current_state, video_id=""
 
     if doorTransition:
         pause = check_for_pause(video_frame, video_id)
+        # allow for a "pause" like screen on the title screen
         if pause and current_state != NOT_STARTED:
             doorTransition = False
 
-    doorState = NOT_IN_DOOR
     if doorTransition:
-        if current_state >= PROBABLY_IN_DOOR and current_state < IN_DOOR_ENOUGH_FRAMES:
+        if PROBABLY_IN_DOOR <= current_state < IN_DOOR_ENOUGH_FRAMES:
             doorState = current_state + 1
         elif current_state == IN_DOOR_ENOUGH_FRAMES:
             doorState = ENTERING_DOOR
@@ -153,12 +153,12 @@ def check_for_door_state(video_frame, previous_frame, current_state, video_id=""
         elif current_state == EXITING_DOOR or current_state >= PROBABLY_IN_DOOR:
             doorState = NOT_IN_DOOR
         else:
-            #default to the current state
+            # default to the current state
             doorState = current_state
 
     # in case I want to see what the gray avg is for debugging
-    cv2.putText(gameplay_to_process, "Door State: " + str(doorState), (30, 80),
-                  cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
+    # cv2.putText(gameplay_to_process, "Door State: " + str(doorState), (30, 80),
+    #               cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
     # cv2.imshow('Process ' + video_id, gameplay_to_process)
 
     return doorState
@@ -170,17 +170,19 @@ if __name__ == '__main__':
     # video URL
     processingStartTime = time.time()
 
-    # videoFiles = ["vid1.mp4"]
-    # videoFiles = ["vid1.mp4", "vid2.mp4"]
-    # videoFiles = ["sloaters27_4227.mp4", "sloaters27_4231.mp4"]
-    # videoFiles = ["Zoast-4046.mp4"]
-    # videoFiles = ["Behemoth-4056.mp4"]
-    # videoFiles = ["Oatsngoats-4146.mp4"]
-    # videoFiles = ["Oatsngoats-4146.mp4", "Zoast-4046.mp4", "Behemoth-4056.mp4"]
+    sloaters4227 = Video()
+    sloaters4227.videoFilename="sloaters27_4227.mp4"
+    sloaters4227.gameplayCrop = [(0, 30), (375, 380)]
+    sloaters4227.videoStartTime = 31
+
+    sloaters4231 = Video()
+    sloaters4231.videoFilename="sloaters27_4231.mp4"
+    sloaters4231.videoStartTime = 37
+    sloaters4231.gameplayCrop = [(0, 30), (375, 380)]
 
     oats4146 = Video()
     oats4146.videoFilename = "Oatsngoats-4146.mp4"
-    oats4146.gameplayCrop = [(180, 3), (535, 355)]
+    oats4146.gameplayCrop = [(173, 1), (536, 357)]
     oats4146.videoStartTime = 24
 
     zoast4046 = Video()
@@ -201,8 +203,6 @@ if __name__ == '__main__':
     # Rumble
     rumbleCrop = [(140, 0), (540, 380)]
 
-    # Sloaters
-    sloatersCrop = [(0, 30), (375, 380)]
 
     roomsCompared = 0
     gameCropCoords = []
@@ -223,10 +223,7 @@ if __name__ == '__main__':
 
     fr = int(captures[0].get(cv2.CAP_PROP_FPS))
     for idx, capture in enumerate(captures):
-        # if fr != int(capture.get(cv2.CAP_PROP_FPS)):
-        #     print("All video files must have the same frame rate!  current frame rates are: "
-        #               + str(fr) + "," + int(capture.get(cv2.CAP_PROP_FPS)))
-        #     exit(1)
+        # All video files must have (at least about) the same frame rate!
         print("FR: " + str(capture.get(cv2.CAP_PROP_FPS)))
         startFrames[idx] = startTimes[idx] * capture.get(cv2.CAP_PROP_FPS)
         capture.set(cv2.CAP_PROP_POS_FRAMES, startFrames[idx])
