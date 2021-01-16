@@ -185,6 +185,11 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
         startTimes.append(videoFile.videoStartTime + startMin * 60)
 
     fr = int(captures[0].get(cv2.CAP_PROP_FPS))
+    if fr < 58:
+        DOOR_CHECK_FRAMES = 3
+    else:
+        DOOR_CHECK_FRAMES = 5
+        
     for idx, capture in enumerate(captures):
         # All video files must have (at least about) the same frame rate!
         print("FR: " + str(capture.get(cv2.CAP_PROP_FPS)))

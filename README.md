@@ -1,15 +1,11 @@
-Super Metroid Video Comparison
+Chozocompare
 ==============================
 
-Tool for compositing two Super Metroid videos on a room by room basis.
-
-Resources
----------
-
+Tool for compositing two Super Metroid videos on a room by room basis.  Could probably be made to compare other game videos too.
 
 Requirements
 ------------
-* Python
+Python 3.8
 
 Installation
 ------------
@@ -17,6 +13,10 @@ Installation
 
 Usage
 -----
+
+```shell
+~/chozocompare/gui> python chozocompare.py
+```
 
 In order to compare two videos, the two videos must meet these criteria:
 1. They must visit the rooms in the exact same order
@@ -58,7 +58,7 @@ Make sure if you update the values to click refresh preview to save them.
 
 **Number of Door Transitions** Allows you to choose how many door transitions to compare.  If you want the full run just put in a large value like 999
 
-After that's all filled out, just click "Start".  The comparison video will pop up to show you the progress.  It will take *a while*
+After that's all filled out, just click "Start".  The comparison video will pop up to show you the progress.  It will take *a while*.  you can pres Q to cancel the comparison, any video that's been written up to that point should still be good.
 
 ![img.png](documentation/comparisonPreview.png)
 
@@ -66,4 +66,4 @@ After that's all filled out, just click "Start".  The comparison video will pop 
 
 The better the capture the better the results.  If you have bit alerts/emotes/funny gifs etc in the gameplay portion of the video it will likely cause problems with the door transition detection.
 
-It can take quite awhile to process, especially if you're using large video files.
+It can take quite a while to process, especially if you're using large video files.

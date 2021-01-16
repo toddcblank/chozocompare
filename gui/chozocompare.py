@@ -22,7 +22,7 @@ def makeVideoForm(mainWin, videoIndex, video):
 
     tk.Label(mainWin, text="Title").grid(row=1, column=0 + 2 * videoIndex)
     title_entry1 = tk.Entry(mainWin)
-    title_entry1.insert(0, "Zoast")
+    title_entry1.insert(0, "Title")
     title_entry1.grid(row=1, column=1 + 2 * videoIndex)
     entries["title"] = title_entry1
 
