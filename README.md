@@ -58,6 +58,9 @@ Make sure if you update the values to click refresh preview to save them.
 
 **Number of Door Transitions** Allows you to choose how many door transitions to compare.  If you want the full run just put in a large value like 999
 
+After that's all filled out, just click "Start".  The comparison video will pop up to show you the progress.  It will take *a while*
+
+![img.png](documentation/comparisonPreview.png)
 
 ### Video Tips
 
