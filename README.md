@@ -67,3 +67,5 @@ After that's all filled out, just click "Start".  The comparison video will pop 
 The better the capture the better the results.  If you have bit alerts/emotes/funny gifs etc in the gameplay portion of the video it will likely cause problems with the door transition detection.
 
 It can take quite a while to process, especially if you're using large video files.
+
+Make sure you're not including extra board around the gameplay that is black.  It'll likely result in door transitions not being recognized.
