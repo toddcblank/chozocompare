@@ -22,7 +22,6 @@ STILL_IN_DOOR = 2
 EXITING_DOOR = 3
 NOT_IN_DOOR = 4
 PROBABLY_IN_DOOR = 5
-IN_DOOR_ENOUGH_FRAMES = PROBABLY_IN_DOOR + DOOR_CHECK_FRAMES
 
 class Video:
     videoFilename = ""
@@ -123,7 +122,7 @@ def check_for_door_fivePointAvgStd(gameplay_to_process, current_state):
 
 # Checks if we think we're in a door transition frame
 # This currently naively checks if the middle part of the screen is dark.  So some rooms might be false positives
-def check_for_door_state(video_frame, previous_frame, current_state, video_id=""):
+def check_for_door_state(video_frame, previous_frame, current_state, video_id="", doorFramesRequired=5):
     # cut out the hud of the gameplay
     gameplay_to_process = video_frame[32:, 0:].copy()
     doorTransition = check_for_door_equalize(gameplay_to_process, current_state, video_id)
@@ -134,11 +133,11 @@ def check_for_door_state(video_frame, previous_frame, current_state, video_id=""
         # allow for a "pause" like screen on the title screen
         if pause and current_state != NOT_STARTED:
             doorTransition = False
-
+    in_door_enough_frames = PROBABLY_IN_DOOR + doorFramesRequired
     if doorTransition:
-        if PROBABLY_IN_DOOR <= current_state < IN_DOOR_ENOUGH_FRAMES:
+        if PROBABLY_IN_DOOR <= current_state < in_door_enough_frames:
             doorState = current_state + 1
-        elif current_state == IN_DOOR_ENOUGH_FRAMES:
+        elif current_state == in_door_enough_frames:
             doorState = ENTERING_DOOR
         elif current_state == STILL_IN_DOOR or current_state == ENTERING_DOOR or current_state == EXITING_DOOR:
             doorState = STILL_IN_DOOR
@@ -185,11 +184,12 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
         startTimes.append(videoFile.videoStartTime + startMin * 60)
 
     fr = int(captures[0].get(cv2.CAP_PROP_FPS))
+    doorFramesRequired = 5
     if fr < 58:
-        DOOR_CHECK_FRAMES = 3
+        doorFramesRequired = 3
     else:
-        DOOR_CHECK_FRAMES = 5
-        
+        doorFramesRequired = 5
+
     for idx, capture in enumerate(captures):
         # All video files must have (at least about) the same frame rate!
         print("FR: " + str(capture.get(cv2.CAP_PROP_FPS)))
@@ -234,7 +234,7 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
             currentFrame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
 
             if not firstFrame[idx]:
-                currentDoorState[idx] = check_for_door_state(gameplay, capturedFrames[idx], currentDoorState[idx], str(idx))
+                currentDoorState[idx] = check_for_door_state(gameplay, capturedFrames[idx], currentDoorState[idx], str(idx), doorFramesRequired)
             else:
                 firstFrame[idx] = False
 
