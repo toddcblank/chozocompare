@@ -14,7 +14,7 @@ color = (255, 255, 255)
 
 # Line thickness of 1 px
 thickness = 1
-DOOR_CHECK_FRAMES = 3
+DOOR_CHECK_FRAMES = 5
 
 NOT_STARTED = 0
 ENTERING_DOOR = 1
@@ -31,11 +31,12 @@ class Video:
     videoFilename = ""
     videoStartTime = 0
     gameplayCrop = [(0, 0), (540, 380)]
+    videoTitle = ""
 
 
 def check_for_pause(gameplay_to_process, video_id):
 
-    topHud = gameplay_to_process[0:60, 0:240]
+    topHud = gameplay_to_process[0:32, 0:150]
     # cv2.imshow("Hud", topHud)
 
     gray = cv2.cvtColor(topHud, cv2.COLOR_BGR2GRAY)
@@ -43,7 +44,7 @@ def check_for_pause(gameplay_to_process, video_id):
     ret, thresh = cv2.threshold(gray, 10, 256, cv2.THRESH_BINARY)
     threshAvg = 256 - np.average(thresh)
 
-    cv2.putText(thresh, str(threshAvg), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
+    # cv2.putText(thresh, str(threshAvg), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
     # cv2.imshow("hud-thresh-" + video_id, thresh)
 
     return threshAvg > 245
@@ -57,17 +58,17 @@ def check_for_door_equalize(gameplay_to_process, current_state, video_id):
     threshAvg = np.average(thresh)
 
 
-    middleBox = thresh[80:-80, 80:-80].copy()
+    middleBox = thresh[50:-50, 50:-50].copy()
     middleAvg = np.average(middleBox)
 
     cv2.putText(thresh, str(threshAvg), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 1, cv2.LINE_AA)
     cv2.putText(middleBox, str(middleAvg), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv2.LINE_AA)
-    cv2.imshow("thresh-" + video_id, thresh)
+    # cv2.imshow("thresh-" + video_id, thresh)
     # cv2.imshow("thresh-mb-" + video_id, middleBox)
 
 
     # doorTransition = check_for_door_avgStd(gameplay_to_process, current_state)
-    doorTransition = (threshAvg > 243) and (current_state == STILL_IN_DOOR or middleAvg > 253)
+    doorTransition = (threshAvg > 235) and (current_state == STILL_IN_DOOR or middleAvg > 253)
     # if doorTransition and current_state == ENTERING_DOOR:
     #     currTime = time.time()
     #     cv2.imwrite("doors/" + video_id + "/door_in_" + str(currTime) + "-g.png", gameplay_to_process)
@@ -85,11 +86,11 @@ def check_for_door_equalize(gameplay_to_process, current_state, video_id):
 def check_for_door_fivePointAvgStd(gameplay_to_process, current_state):
     # grab the four corners of the screen, which should avoid doors, but include lots
     # of colors from normal rooms
-    ulBox = gameplay_to_process[0:100, 0:180]
-    llBox = gameplay_to_process[-100:, 0:180]
+    ulBox = gameplay_to_process[0:65, 0:120]
+    llBox = gameplay_to_process[-65:, 0:120]
     # lrBox = gameplay_to_process[-100:, -180:]
-    lrBox = gameplay_to_process[-100:-20, -180:]
-    urBox = gameplay_to_process[0:100, -180:]
+    lrBox = gameplay_to_process[-65:-20, -120:]
+    urBox = gameplay_to_process[0:65, -120:]
     middleBox = gameplay_to_process[60:-60, 60:-60]
 
     # calculate the std of each box, if they're all low, then we probably have a door transition
@@ -127,7 +128,7 @@ def check_for_door_fivePointAvgStd(gameplay_to_process, current_state):
 # This currently naively checks if the middle part of the screen is dark.  So some rooms might be false positives
 def check_for_door_state(video_frame, previous_frame, current_state, video_id=""):
     # cut out the hud of the gameplay
-    gameplay_to_process = video_frame[60:, 0:].copy()
+    gameplay_to_process = video_frame[32:, 0:].copy()
     doorTransition = check_for_door_equalize(gameplay_to_process, current_state, video_id)
     doorTransition = doorTransition and check_for_door_fivePointAvgStd(gameplay_to_process, current_state)
 
@@ -185,17 +186,35 @@ if __name__ == '__main__':
     oats4146.gameplayCrop = [(173, 1), (536, 357)]
     oats4146.videoStartTime = 24
 
+    oats4146_60fps = Video()
+    oats4146_60fps.videoFilename = "Oatsngoats-4146-60fps.mp4"
+    oats4146_60fps.gameplayCrop = [(173, 2), (536, 357)]
+    oats4146_60fps.videoStartTime = 24
+    oats4146_60fps.videoTitle = "Oatsngoats 41:46"
+
     zoast4046 = Video()
     zoast4046.videoFilename = "Zoast-4046.mp4"
-    zoast4046.gameplayCrop = [(135, 0), (540, 380)]
+    zoast4046.gameplayCrop = [(136, 0), (540, 380)]
     zoast4046.videoStartTime = 2
+
+    zoast4046_60fps = Video()
+    zoast4046_60fps.videoFilename = "Zoast-4046-60fps.mp4"
+    zoast4046_60fps.gameplayCrop = [(137, 0), (540, 380)]
+    zoast4046_60fps.videoStartTime = 2
+    zoast4046_60fps.videoTitle = "Zoast 40:46"
 
     behemoth4056 = Video()
     behemoth4056.videoFilename = "Behemoth-4056.mp4"
     behemoth4056.gameplayCrop = [(150, 12), (540, 380)]
     behemoth4056.videoStartTime = 3
 
-    videos = [oats4146, zoast4046, behemoth4056]
+    behemoth4056_60fps = Video()
+    behemoth4056_60fps.videoFilename = "Behemoth-4056-60fps.mp4"
+    behemoth4056_60fps.gameplayCrop = [(150, 12), (540, 380)]
+    behemoth4056_60fps.videoStartTime = 3
+    behemoth4056_60fps.videoTitle = "Behemoth 40:56"
+
+    videos = [oats4146_60fps, zoast4046_60fps, behemoth4056_60fps]
 
     # start times in seconds
     startMin = 0
@@ -230,10 +249,15 @@ if __name__ == '__main__':
         lastRoomFrameEnd[idx] = startFrames[idx]
 
     outputFrameRate = fr
+    # output = cv2.VideoWriter('output.avi',
+    #                          cv2.VideoWriter_fourcc('H', '2', '6', '4'),
+    #                          outputFrameRate,
+    #                          (256 * len(captures), 224))
+
     output = cv2.VideoWriter('output.avi',
-                             cv2.VideoWriter_fourcc('H', '2', '6', '4'),
+                             cv2.VideoWriter_fourcc(*'MP4V'),
                              outputFrameRate,
-                             (400 * len(captures), 380))
+                             (256 * len(captures), 224))
 
 
     while (any(ele.isOpened() for ele in captures)) and roomsCompared < roomsToCompare:
@@ -262,7 +286,7 @@ if __name__ == '__main__':
                                       gameCropCoords[idx][0][0]:gameCropCoords[idx][1][0]]
 
             # resize to consistent size so the door transition checks can be standardized
-            gameplay = cv2.resize(gameplayPreResize, (400, 380), fx=0, fy=0, interpolation=cv2.INTER_CUBIC)
+            gameplay = cv2.resize(gameplayPreResize, (256, 224), fx=0, fy=0, interpolation=cv2.INTER_CUBIC)
 
             currentFrame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
 
@@ -298,8 +322,8 @@ if __name__ == '__main__':
                         cv2.LINE_AA)
 
             cv2.putText(gameplay,
-                        videos[idx].videoFilename,
-                        (0, 350),
+                        videos[idx].videoTitle,
+                        (0, 200),
                         font,
                         fontScale * .5,
                         color,
