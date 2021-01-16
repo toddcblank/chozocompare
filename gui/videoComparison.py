@@ -24,9 +24,6 @@ NOT_IN_DOOR = 4
 PROBABLY_IN_DOOR = 5
 IN_DOOR_ENOUGH_FRAMES = PROBABLY_IN_DOOR + DOOR_CHECK_FRAMES
 
-# how many rooms to compare
-roomsToCompare = 400
-
 class Video:
     videoFilename = ""
     videoStartTime = 0
@@ -165,63 +162,10 @@ def check_for_door_state(video_frame, previous_frame, current_state, video_id=""
     return doorState
 
 
-if __name__ == '__main__':
-
+def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, showPreview):
     # input:
     # video URL
     processingStartTime = time.time()
-
-    sloaters4227 = Video()
-    sloaters4227.videoFilename="sloaters27_4227.mp4"
-    sloaters4227.gameplayCrop = [(0, 30), (375, 380)]
-    sloaters4227.videoStartTime = 31
-
-    sloaters4231 = Video()
-    sloaters4231.videoFilename="sloaters27_4231.mp4"
-    sloaters4231.videoStartTime = 37
-    sloaters4231.gameplayCrop = [(0, 30), (375, 380)]
-
-    oats4146 = Video()
-    oats4146.videoFilename = "Oatsngoats-4146.mp4"
-    oats4146.gameplayCrop = [(173, 1), (536, 357)]
-    oats4146.videoStartTime = 24
-
-    oats4146_60fps = Video()
-    oats4146_60fps.videoFilename = "Oatsngoats-4146-60fps.mp4"
-    oats4146_60fps.gameplayCrop = [(173, 2), (536, 357)]
-    oats4146_60fps.videoStartTime = 24
-    oats4146_60fps.videoTitle = "Oatsngoats 41:46"
-
-    zoast4046 = Video()
-    zoast4046.videoFilename = "Zoast-4046.mp4"
-    zoast4046.gameplayCrop = [(136, 0), (540, 380)]
-    zoast4046.videoStartTime = 2
-
-    zoast4046_60fps = Video()
-    zoast4046_60fps.videoFilename = "Zoast-4046-60fps.mp4"
-    zoast4046_60fps.gameplayCrop = [(137, 0), (540, 380)]
-    zoast4046_60fps.videoStartTime = 2
-    zoast4046_60fps.videoTitle = "Zoast 40:46"
-
-    behemoth4056 = Video()
-    behemoth4056.videoFilename = "Behemoth-4056.mp4"
-    behemoth4056.gameplayCrop = [(150, 12), (540, 380)]
-    behemoth4056.videoStartTime = 3
-
-    behemoth4056_60fps = Video()
-    behemoth4056_60fps.videoFilename = "Behemoth-4056-60fps.mp4"
-    behemoth4056_60fps.gameplayCrop = [(150, 12), (540, 380)]
-    behemoth4056_60fps.videoStartTime = 3
-    behemoth4056_60fps.videoTitle = "Behemoth 40:56"
-
-    videos = [oats4146_60fps, zoast4046_60fps, behemoth4056_60fps]
-
-    # start times in seconds
-    startMin = 0
-
-    # Rumble
-    rumbleCrop = [(140, 0), (540, 380)]
-
 
     roomsCompared = 0
     gameCropCoords = []
@@ -249,16 +193,10 @@ if __name__ == '__main__':
         lastRoomFrameEnd[idx] = startFrames[idx]
 
     outputFrameRate = fr
-    # output = cv2.VideoWriter('output.avi',
-    #                          cv2.VideoWriter_fourcc('H', '2', '6', '4'),
-    #                          outputFrameRate,
-    #                          (256 * len(captures), 224))
-
-    output = cv2.VideoWriter('output.avi',
+    output = cv2.VideoWriter(outputFilename,
                              cv2.VideoWriter_fourcc(*'MP4V'),
                              outputFrameRate,
                              (256 * len(captures), 224))
-
 
     while (any(ele.isOpened() for ele in captures)) and roomsCompared < roomsToCompare:
         # loop through all the captures.  If a capture is in a door transition don't do any processing
@@ -308,7 +246,6 @@ if __name__ == '__main__':
                 seconds = int(roomFrames / fr)
                 frames = int(roomFrames) % fr
                 lastRoomTimeStr[idx] = str(seconds) + "s " + str(frames) + "f"
-                # cv2.imshow('Door Transition ' + str(idx+1), gameplay)
                 lastRoomFrameEnd[idx] = currentFrame
                 processVideo[idx] = False
 
@@ -330,7 +267,6 @@ if __name__ == '__main__':
                         thickness,
                         cv2.LINE_AA)
 
-            # cv2.imshow('Run ' + str(idx+1), gameplay)
             capturedFrames[idx] = gameplay
 
         if not any(ele == True for ele in processVideo):
@@ -341,7 +277,8 @@ if __name__ == '__main__':
             print("Compared room " + str(roomsCompared))
 
         composite = np.concatenate(capturedFrames, axis=1)
-        cv2.imshow("Comparison", composite)
+        if showPreview:
+            cv2.imshow("Comparison (Press Q to stop)", composite)
         output.write(composite)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

@@ -3,6 +3,7 @@ import cv2
 from PIL import Image
 from PIL import ImageTk
 from tkinter import PhotoImage
+import videoComparison
 
 class Video:
     videoFilename = ""
@@ -58,8 +59,8 @@ def makeVideoForm(mainWin, videoIndex, video):
 
     return entries
 
-def makeCommonForm(mainWin):
-    tk.Label(mainWin, text="Run Time Start (in seconds)").grid(row=8, column=0, columnspan=2)
+def makeCommonForm(mainWin, videos):
+    tk.Label(mainWin, text="Video Start Time (in minutes)").grid(row=8, column=0, columnspan=2)
     timeStart = tk.Entry(mainWin)
     timeStart.insert(0, "0")
     timeStart.grid(row=8, column=3, columnspan=2)
@@ -69,7 +70,10 @@ def makeCommonForm(mainWin):
     doorTransitions.insert(0, "999")
     doorTransitions.grid(row=9, column=3, columnspan=2)
 
-    tk.Button(mainWin, text="                 Start               ").grid(row=10, column=0, columnspan=6)
+    tk.Button(mainWin, text="                 Start               ",
+              command=(
+                  lambda: startComparison(videos, "output.mp4", True, timeStart, doorTransitions))
+              ).grid(row=10, column=0, columnspan=6)
     return
 
 class App:
@@ -86,9 +90,13 @@ class App:
         videos[1].videoTitle = "video1"
         makeVideoForm(mainWin, 0, videos[0])
         makeVideoForm(mainWin, 1, videos[1])
-        makeCommonForm(mainWin)
+        makeCommonForm(mainWin, videos)
         self.window.mainloop()
 
+def startComparison(videos, output, showPreview, startTimeEntry, doorComparisonsEntry):
+    startTime = int(startTimeEntry.get())
+    doorComparisons = int(doorComparisonsEntry.get())
+    videoComparison.processVideoComparison(videos, startTime, doorComparisons, output, showPreview)
 
 def loadVideo(formFields, vid):
     vid.videoTitle = formFields["title"].get()
