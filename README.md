@@ -9,7 +9,7 @@ Python 3.8
 
 Installation
 ------------
-
+Clone the repo or download the files.  Or download one of the releases made with pyinstaller
 
 Usage
 -----
