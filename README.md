@@ -29,7 +29,7 @@ You can download the videos however you want.  This is easy if they're both your
 
 You can use [twitch-dl](https://github.com/ihaunek/twitch-dl) to download other videos from Twitch.  Make sure you convert them to mp4 before using them.  I use [https://ffmpeg.org/](ffmpeg) to do so:
 ```shell
- -i input_video.mkv -codec copy input_video.mp4
+ffmpeg.exe -i input_video.mkv -codec copy input_video.mp4
 ```
 
 ### Configure the videos
