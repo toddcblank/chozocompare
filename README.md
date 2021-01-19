@@ -68,4 +68,4 @@ The better the capture the better the results.  If you have bit alerts/emotes/fu
 
 It can take quite a while to process, especially if you're using large video files.
 
-Make sure you're not including extra board around the gameplay that is black.  It'll likely result in door transitions not being recognized.
+Make sure you're not including extra boarder around the gameplay that is black.  It'll likely result in door transitions not being recognized.
