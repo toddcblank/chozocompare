@@ -160,8 +160,38 @@ def check_for_door_state(video_frame, previous_frame, current_state, video_id=""
 
     return doorState
 
+def check_for_smb1_transition(video_frame, previous_frame, current_state, video_id="", doorFramesRequired=5):
+    gameplay_to_process = video_frame[0:, 0:].copy()
+    doorTransition = check_for_door_equalize(gameplay_to_process, current_state, video_id)
+    doorFramesRequired = 1
+    in_door_enough_frames = PROBABLY_IN_DOOR + doorFramesRequired
+    if doorTransition:
+        if PROBABLY_IN_DOOR <= current_state < in_door_enough_frames:
+            doorState = current_state + 1
+        elif current_state == in_door_enough_frames:
+            doorState = ENTERING_DOOR
+        elif current_state == STILL_IN_DOOR or current_state == ENTERING_DOOR or current_state == EXITING_DOOR:
+            doorState = STILL_IN_DOOR
+        else:
+            # cv2.imwrite("doors/door_" + str(time.time()) + "-c.png", video_frame)
+            doorState = PROBABLY_IN_DOOR
+    else:
+        if current_state == STILL_IN_DOOR or current_state == ENTERING_DOOR:
+            doorState = EXITING_DOOR
+        elif current_state == EXITING_DOOR or current_state >= PROBABLY_IN_DOOR:
+            doorState = NOT_IN_DOOR
+        else:
+            # default to the current state
+            doorState = current_state
 
-def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, showPreview):
+    # in case I want to see what the gray avg is for debugging
+    # cv2.putText(gameplay_to_process, "Door State: " + str(doorState), (30, 80),
+    #               cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1, cv2.LINE_AA)
+    # cv2.imshow('Process ' + video_id, gameplay_to_process)
+
+    return doorState
+
+def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, showPreview, game="SM"):
     # input:
     # video URL
     processingStartTime = time.time()
@@ -234,7 +264,10 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
             currentFrame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
 
             if not firstFrame[idx]:
-                currentDoorState[idx] = check_for_door_state(gameplay, capturedFrames[idx], currentDoorState[idx], str(idx), doorFramesRequired)
+                if game == "SMB1":
+                    currentDoorState[idx] = check_for_smb1_transition(gameplay, capturedFrames[idx], currentDoorState[idx], str(idx), doorFramesRequired)
+                else:
+                    currentDoorState[idx] = check_for_door_state(gameplay, capturedFrames[idx], currentDoorState[idx], str(idx), doorFramesRequired)
             else:
                 firstFrame[idx] = False
 

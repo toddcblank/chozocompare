@@ -86,6 +86,10 @@ def makeVideoForm(mainWin, videoIndex, video):
     imagePreview.grid(row=7, column=0 + 2 * videoIndex)
 
     entries["preview"] = imagePreview
+    try:
+        loadVideo(entries, video)
+    except:
+        pass
 
     return entries
 
@@ -100,10 +104,17 @@ def makeCommonForm(mainWin, videos):
     doorTransitions.insert(0, "999")
     doorTransitions.grid(row=9, column=3, columnspan=2)
 
+    tk.Label(mainWin, text="Transition Algorithm").grid(row=10, column=0, columnspan=2)
+    options = ["SM", "SMB1"]
+    transitionAlgorithm = tk.StringVar(mainWin)
+    transitionAlgorithm.set("SM")
+    optionMenu = tk.OptionMenu(mainWin, transitionAlgorithm, *options)
+    optionMenu.grid(row=10, column=3)
+
     tk.Button(mainWin, text="                 Start               ",
               command=(
-                  lambda: startComparison(videos, "output.mp4", True, timeStart, doorTransitions))
-              ).grid(row=10, column=0, columnspan=6)
+                  lambda: startComparison(videos, "output.mp4", True, timeStart, doorTransitions, transitionAlgorithm))
+              ).grid(row=11, column=0, columnspan=6)
     return
 
 class App:
@@ -138,11 +149,11 @@ class App:
         makeCommonForm(mainWin, videos)
         self.window.mainloop()
 
-def startComparison(videos, output, showPreview, startTimeEntry, doorComparisonsEntry):
+def startComparison(videos, output, showPreview, startTimeEntry, doorComparisonsEntry, algorithm):
     saveConfig(videos)
     startTime = int(startTimeEntry.get())
     doorComparisons = int(doorComparisonsEntry.get())
-    videoComparison.processVideoComparison(videos, startTime, doorComparisons, output, showPreview)
+    videoComparison.processVideoComparison(videos, startTime, doorComparisons, output, showPreview, algorithm.get())
 
 def loadVideo(formFields, vid):
     vid.videoTitle = formFields["title"].get()
