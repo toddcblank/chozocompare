@@ -27,7 +27,7 @@ Note that the higher the framerate, and the larger the video, the longer it will
 ### Download the videos
 You can download the videos however you want.  This is easy if they're both your own videos (Twitch provides links for you to download them)
 
-You can use [twitch-dl](https://github.com/ihaunek/twitch-dl) to download other videos from Twitch.  Make sure you convert them to mp4 before using them.  I use [https://ffmpeg.org/](ffmpeg) to do so:
+You can use [twitch-dl](https://github.com/ihabunek/twitch-dl) to download other videos from Twitch.  Make sure you convert them to mp4 before using them.  I use [https://ffmpeg.org/](ffmpeg) to do so:
 ```shell
 ffmpeg.exe -i input_video.mkv -codec copy input_video.mp4
 ```

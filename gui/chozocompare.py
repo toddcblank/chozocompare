@@ -4,43 +4,73 @@ from PIL import Image
 from PIL import ImageTk
 from tkinter import PhotoImage
 import videoComparison
+import configparser
+
+config = configparser.ConfigParser()
 
 class Video:
-    videoFilename = ""
+    videoFilename = "filename.mp4"
     videoStartTime = 0
     gameplayCrop = [(0, 0), (540, 380)]
-    videoTitle = ""
+    videoTitle = "Title"
+
+
+def saveConfig(videos):
+
+    config['video1'] = {
+        'title': videos[0].videoTitle,
+        'startTime': videos[0].videoStartTime,
+        'gameplayCropUpperLeftX': videos[0].gameplayCrop[0][0],
+        'gameplayCropUpperLeftY': videos[0].gameplayCrop[0][1],
+        'gameplayCropLowerRightX': videos[0].gameplayCrop[1][0],
+        'gameplayCropLowerRightY': videos[0].gameplayCrop[1][1],
+        'filename': videos[0].videoFilename
+    }
+    config['video2'] = {
+        'title': videos[1].videoTitle,
+        'startTime': videos[1].videoStartTime,
+        'gameplayCropUpperLeftX': videos[1].gameplayCrop[0][0],
+        'gameplayCropUpperLeftY': videos[1].gameplayCrop[0][1],
+        'gameplayCropLowerRightX': videos[1].gameplayCrop[1][0],
+        'gameplayCropLowerRightY': videos[1].gameplayCrop[1][1],
+        'filename': videos[1].videoFilename
+    }
+
+    with open('video-config.cfg', 'w') as configfile:
+        config.write(configfile)
+
+    return
 
 def makeVideoForm(mainWin, videoIndex, video):
 
     entries = {}
     tk.Label(mainWin, text="Filename").grid(row=0, column=0  + 2 * videoIndex)
     filenameEntry1 = tk.Entry(mainWin)
-    filenameEntry1.insert(0, "vid1.mp4")
+    filenameEntry1.insert(0, video.videoFilename)
     filenameEntry1.grid(row=0, column=1 + 2 * videoIndex)
     entries["filename"] = filenameEntry1
 
     tk.Label(mainWin, text="Title").grid(row=1, column=0 + 2 * videoIndex)
     title_entry1 = tk.Entry(mainWin)
-    title_entry1.insert(0, "Title")
+    title_entry1.insert(0, video.videoTitle)
     title_entry1.grid(row=1, column=1 + 2 * videoIndex)
     entries["title"] = title_entry1
 
     tk.Label(mainWin, text="Upper Left Gameplay").grid(row=2, column=0 + 2 * videoIndex)
     gpXY1 = tk.Entry(mainWin)
-    gpXY1.insert(0, "0,0")
+    gpXY1.insert(0, str(video.gameplayCrop[0][0]) + "," + str(video.gameplayCrop[0][1]))
     gpXY1.grid(row=2, column=1 + 2 * videoIndex)
     entries["topLeft"] = gpXY1
 
     tk.Label(mainWin, text="Lower Right Gameplay").grid(row=3, column=0 + 2 * videoIndex)
     gpXY2 = tk.Entry(mainWin)
-    gpXY2.insert(0, "540,380")
+    gpXY2.insert(0, str(video.gameplayCrop[1][0]) + "," + str(video.gameplayCrop[1][1]))
     gpXY2.grid(row=3, column=1 + 2 * videoIndex)
     entries["bottomRight"] = gpXY2
 
     tk.Label(mainWin, text="Start Screen Offset (s)").grid(row=4, column=0 + 2 * videoIndex)
     offset = tk.Entry(mainWin)
-    offset.insert(0, "0")
+    offset.insert(0, video.videoStartTime)
     offset.grid(row=4, column=1 + 2 * videoIndex)
     entries["offset"] = offset
 
@@ -85,15 +115,31 @@ class App:
         videos = [Video(), Video()]
 
         mainWin = self.window
-        videos[0].videoTitle = "video0"
+        config.read('video-config.cfg')
 
-        videos[1].videoTitle = "video1"
+        videos[0].videoTitle     = config['video1']['title']
+        videos[0].videoStartTime = config['video1']['startTime']
+        videos[0].gameplayCrop = [
+            (int(config['video1']['gameplayCropUpperLeftX']), int(config['video1']['gameplayCropUpperLeftY'])),
+            (int(config['video1']['gameplayCropLowerRightX']), int(config['video1']['gameplayCropLowerRightY'])),
+        ]
+        videos[0].videoFilename  = config['video1']['filename']
+
+        videos[1].videoTitle     = config['video2']['title']
+        videos[1].videoStartTime = config['video2']['startTime']
+        videos[1].gameplayCrop   = [
+            (int(config['video2']['gameplayCropUpperLeftX']), int(config['video2']['gameplayCropUpperLeftY'])),
+            (int(config['video2']['gameplayCropLowerRightX']), int(config['video2']['gameplayCropLowerRightY'])),
+        ]
+        videos[1].videoFilename  = config['video2']['filename']
+
         makeVideoForm(mainWin, 0, videos[0])
         makeVideoForm(mainWin, 1, videos[1])
         makeCommonForm(mainWin, videos)
         self.window.mainloop()
 
 def startComparison(videos, output, showPreview, startTimeEntry, doorComparisonsEntry):
+    saveConfig(videos)
     startTime = int(startTimeEntry.get())
     doorComparisons = int(doorComparisonsEntry.get())
     videoComparison.processVideoComparison(videos, startTime, doorComparisons, output, showPreview)
