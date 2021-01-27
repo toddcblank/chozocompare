@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import time
+import csv
 
 # Text Setup
 # font
@@ -204,9 +205,11 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
     processVideo = [True] * len(videos)
     lastRoomFrameEnd = [0] * len(videos)
     lastRoomTimeStr = [""] * len(videos)
+    lastRoomTimeFrames = [0] * len(videos)
     currentDoorState = [NOT_STARTED] * len(videos)
     firstFrame = [True] * len(videos)
     capturedFrames = [None] * len(videos)
+    videoFinished = [False] * len(videos)
 
     for videoFile in videos:
         captures.append(cv2.VideoCapture(videoFile.videoFilename))
@@ -231,7 +234,9 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
     output = cv2.VideoWriter(outputFilename,
                              cv2.VideoWriter_fourcc(*'MP4V'),
                              outputFrameRate,
-                             (256 * len(captures), 224))
+                             (256 * len(captures), 224 + 36))
+
+    comparisonInfo = []
 
     while (any(ele.isOpened() for ele in captures)) and roomsCompared < roomsToCompare:
         # loop through all the captures.  If a capture is in a door transition don't do any processing
@@ -248,6 +253,11 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
 
             ret, frame = cap.read()
             if not cap.isOpened():
+                continue
+
+            if frame is None:
+                videoFinished[idx] = True
+                processVideo[idx] = False
                 continue
 
             # resize to a standard size
@@ -284,40 +294,49 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
                 seconds = int(roomFrames / fr)
                 frames = int(roomFrames) % fr
                 lastRoomTimeStr[idx] = str(seconds) + "s " + str(frames) + "f"
+                lastRoomTimeFrames[idx] = roomFrames
                 lastRoomFrameEnd[idx] = currentFrame
                 processVideo[idx] = False
+            gamePlayWithStats = cv2.copyMakeBorder(gameplay, 0, 36, 0, 0, cv2.BORDER_CONSTANT, value=[0, 0, 0])
 
-            cv2.putText(gameplay,
-                        "Prev: " + lastRoomTimeStr[idx],
-                        (0, 12),
+            cv2.putText(gamePlayWithStats,
+                        "Rm " + str(roomsCompared) + ": " + lastRoomTimeStr[idx],
+                        (128, 242),
                         font,
                         fontScale * .5,
                         color,
                         thickness,
                         cv2.LINE_AA)
 
-            cv2.putText(gameplay,
+            cv2.putText(gamePlayWithStats,
                         videos[idx].videoTitle,
-                        (0, 200),
+                        (0, 242),
                         font,
                         fontScale * .5,
                         color,
                         thickness,
                         cv2.LINE_AA)
 
-            capturedFrames[idx] = gameplay
+            capturedFrames[idx] = gamePlayWithStats
 
         if not any(ele == True for ele in processVideo):
             for idx in range(len(processVideo)):
                 processVideo[idx] = True
 
             roomsCompared += 1
+            comparisonInfo.append(lastRoomTimeFrames.copy())
             print("Compared room " + str(roomsCompared))
 
+            if any(ele == True for ele in videoFinished):
+                roomsCompared = roomsToCompare + 1
+
+
         composite = np.concatenate(capturedFrames, axis=1)
+
         if showPreview:
             cv2.imshow("Comparison (Press Q to stop)", composite)
         output.write(composite)
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -325,6 +344,11 @@ def processVideoComparison(videos, startMin, roomsToCompare, outputFilename, sho
     for capture in captures:
         capture.release()
     output.release()
+
+    with open('comparison.csv', 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter='\t', quotechar='\'', quoting=csv.QUOTE_NONE, escapechar="\\")
+        for idx in range(len(comparisonInfo)):
+            writer.writerow(["Room " + str(idx + 1)] + comparisonInfo[idx])
 
     # Closes all the windows currently opened.
     cv2.destroyAllWindows()
